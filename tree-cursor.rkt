@@ -43,11 +43,14 @@
 
 (define (cursor-up a-cursor)
   (define parent (cursor-parent a-cursor))
+  (when (eq? (cursor-parent a-cursor) #f)
+    (error 'cursor-up "nothing up of cursor"))
   (cursor-refresh a-cursor
                   (cursor-parent parent)
                   ((cursor-close-f a-cursor) 
                    (cursor-node parent)
-                   (append/rev (cursor-prevs a-cursor) 
+                   (append/rev (cons (cursor-node a-cursor) 
+                                     (cursor-prevs a-cursor))
                                (cursor-nexts a-cursor)))
                   (cursor-prevs parent)
                   (cursor-nexts parent)))
@@ -86,6 +89,24 @@
                   (rest nexts)))
 
 
+(define (cursor-succ? a-cursor)
+  (cond
+    [(cursor-down? a-cursor)
+     #t]
+    [(cursor-right? a-cursor)
+     #t]
+    [else
+     (let loop ([n a-cursor])
+       (cond 
+         [(not (eq? (cursor-parent a-cursor) #f))
+          (let ([n (cursor-up a-cursor)])
+            (cond
+              [(cursor-right? n)
+               #t]
+              [else
+               (loop n)]))]
+         [else
+          #f]))]))
 
 (define (cursor-succ a-cursor)
   (cond
@@ -95,13 +116,20 @@
      (cursor-right a-cursor)]
     [else
      (let loop ([n a-cursor])
-       (let ([n (cursor-up a-cursor)])
+       (unless (cursor-parent a-cursor)
+         (error 'cursor-succ "no successor"))
+       (let ([n (cursor-up n)])
          (cond
            [(cursor-right? n)
             (cursor-right n)]
            [else
             (loop n)])))]))
 
+
+
+;; Every element except the toplevel has a predecessor.
+(define (cursor-pred? a-cursor)
+  (not (eq? (cursor-parent a-cursor) #f)))
 
 (define (cursor-pred a-cursor)
   (cond
@@ -139,5 +167,24 @@
 
 ;; Helper for making new cursors with the same implementation functions.
 (define (cursor-refresh a-cursor parent node prevs nexts)
-  (cursor parent node prevs nexts
+  (cursor parent
+          node
+          prevs
+          nexts
           (cursor-open-f a-cursor) (cursor-close-f a-cursor) (cursor-atomic?-f a-cursor)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (sexp->cursor s-exp)
+  (define (open-f elts) elts)
+  (define (close-f node elts) 
+    elts)
+  (define (atomic-f? elts)
+    (not (list? elts)))
+  (cursor #f
+          s-exp
+          '()
+          '() 
+          open-f
+          close-f
+          atomic-f?))
