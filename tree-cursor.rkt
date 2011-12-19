@@ -120,8 +120,8 @@
     [else
      (let loop ([n a-cursor])
        (cond 
-         [(not (eq? (cursor-parent a-cursor) #f))
-          (let ([n (cursor-up a-cursor)])
+         [(not (eq? (cursor-parent n) #f))
+          (let ([n (cursor-up n)])
             (cond
               [(cursor-right? n)
                #t]
