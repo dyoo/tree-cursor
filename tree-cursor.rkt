@@ -1,10 +1,32 @@
 #lang racket/base
-(require racket/list)
+
 
 ;; Tree cursor library.
 ;; Offers functional views, traversals of the DOM and other tree-like structures.
 ;; See Functional Pearl: The Zipper, by G\'erard Huet
 ;; J. Functional Programming 7 (5): 549--554 Sepember 1997
+(require racket/list)
+
+
+
+;; FIXME: write documentation, add the editing functions as well...
+
+(provide (struct-out cursor)
+         cursor-down?
+         cursor-down
+         cursor-up?
+         cursor-up
+         cursor-left?
+         cursor-left
+         cursor-right?
+         cursor-right
+         cursor-succ?
+         cursor-succ
+         cursor-pred?
+         cursor-pred
+         sexp->cursor)
+
+
 
 (struct cursor (parent node prevs nexts open-f close-f atomic?-f))
 
